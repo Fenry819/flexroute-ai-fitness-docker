@@ -122,7 +122,7 @@ def compact_logs_to_profile(file_path: str):
         
         try:
             print("-> Triggering Local Ollama System Container (Model: mistral)...")
-            local_llm = ChatOllama(model="mistral", temperature=0.0, format="json")
+            local_llm = ChatOllama(model="mistral", temperature=0.0, format="json", base_url=OLLAMA_URL)
             local_structured = local_llm.with_structured_output(AthleteProfile)
             
             result = local_structured.invoke([message])

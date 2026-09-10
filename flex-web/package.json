@@ -9,7 +9,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "electron:dev": "cross-env NODE_ENV=development concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron main.cjs\""
+    "electron:dev": "cross-env NODE_ENV=development concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron main.cjs\"",
+    "electron:build": "npm run build && electron-builder"
   },
   "dependencies": {
     "framer-motion": "^12.40.0",
@@ -26,6 +27,7 @@
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
     "electron": "^34.0.0",
+    "electron-builder": "^26.15.3",
     "eslint": "^10.3.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
@@ -34,5 +36,17 @@
     "tailwindcss": "^3.4.19",
     "vite": "^8.0.12",
     "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "com.flexroute.app",
+    "productName": "FlexRoute",
+    "files": [
+      "dist/**/*",
+      "main.cjs",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis"
+    }
   }
 }

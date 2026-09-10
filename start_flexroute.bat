@@ -1,21 +1,35 @@
 @echo off
 title FlexRoute Launcher
-color 0c
+color 0A
 
 echo =========================================
-echo       BOOTING FLEXROUTE NEURAL ENGINE
+echo            STARTING FLEXROUTE
 echo =========================================
 echo.
 
-echo [1/3] Waking up Local AI (Ollama)...
-start "Ollama Engine" cmd /c "ollama serve"
+cd /d "%~dp0"
+
+echo [1/2] Starting Docker services...
+docker compose up -d
+
+if errorlevel 1 (
+    echo.
+    echo ERROR: Docker services could not be started.
+    echo Make sure Docker Desktop is running.
+    echo.
+    pause
+    exit /b 1
+)
+
+echo.
+echo Waiting for FlexRoute backend...
+timeout /t 5 /nobreak >nul
+
+echo [2/2] Launching FlexRoute...
+
+start "" "%LOCALAPPDATA%\Programs\FlexRoute\FlexRoute.exe"
+
+echo.
+echo FlexRoute started.
 timeout /t 2 /nobreak >nul
-
-echo [2/3] Igniting Python Backend Server...
-start "FlexRoute Backend Engine" cmd /k "call venv\Scripts\activate && python server.py"
-
-echo Waiting for Backend Neural Engine to stabilize...
-timeout /t 8 /nobreak >nul
-
-echo [3/3] Launching Electron Interface...
-start "FlexRoute Frontend" cmd /k "cd flex-web && npm run electron:dev"
+exit

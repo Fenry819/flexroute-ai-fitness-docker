@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-QDRANT_PATH = "local_qdrant"
+QDRANT_URL = os.getenv("QDRANT_URL", "http://localhost:6333")
 COLLECTION_NAME = "exercise_cues"
 KNOWLEDGE_DIR = "knowledge"
 
@@ -41,7 +41,12 @@ def process_knowledge_base():
 
     # 4. LOCAL EMBEDDING ENGINE (UNLIMITED SPEED)
     print("🧠 Booting up Local Nomic Embedding Engine (Zero API Limits)...")
-    embeddings = OllamaEmbeddings(model="nomic-embed-text")
+    OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
+
+    embeddings = OllamaEmbeddings(
+    model="nomic-embed-text",
+    base_url=OLLAMA_URL
+    )
     
     print(f"💾 Ingesting {len(chunked_documents)} chunks into Qdrant at maximum CPU speed...")
     
@@ -49,7 +54,7 @@ def process_knowledge_base():
         QdrantVectorStore.from_documents(
             chunked_documents,
             embeddings,
-            path=QDRANT_PATH,
+            url=QDRANT_URL,
             collection_name=COLLECTION_NAME,
             force_recreate=True, 
         )

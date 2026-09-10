@@ -7,10 +7,15 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # 1. SETUP LOCAL EMBEDDING ENGINE
-embeddings = OllamaEmbeddings(model="nomic-embed-text")
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
+QDRANT_URL = os.getenv("QDRANT_URL", "http://localhost:6333")
+
+embeddings = OllamaEmbeddings(
+    model="nomic-embed-text",
+    base_url=OLLAMA_URL
+)
 
 # 2. DEFINING THE QDRANT STORAGE PATH
-QDRANT_PATH = "local_qdrant"
 COLLECTION_NAME = "exercise_cues"
 
 def search_biomechanics(query: str, k: int = 3):
@@ -21,7 +26,7 @@ def search_biomechanics(query: str, k: int = 3):
         qdrant = QdrantVectorStore.from_existing_collection(
             embedding=embeddings,
             collection_name=COLLECTION_NAME,
-            path=QDRANT_PATH,
+            url=QDRANT_URL,
         )
         
         # Retrieve the top 3 most relevant paragraphs

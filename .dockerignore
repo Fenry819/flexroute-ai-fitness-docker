@@ -1,0 +1,9 @@
+venv
+__pycache__
+*.pyc
+.git
+.gitignore
+flex-web/node_modules
+node_modules
+.env
+local_qdrant

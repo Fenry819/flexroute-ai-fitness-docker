@@ -13,8 +13,10 @@ from langgraph.types import interrupt, Command
 from langgraph.checkpoint.memory import MemorySaver
 from src.biomechanics import search_biomechanics
 
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
+
 DB_PATH = "checkpoints.sqlite"
-local_llm = ChatOllama(model="mistral", temperature=0.0)
+local_llm = ChatOllama(model="mistral", temperature=0.0,base_url=OLLAMA_URL)
 
 # --- Pydantic Schema Specifications ---
 class ProfileUpdateSchema(BaseModel):
@@ -156,7 +158,7 @@ def profile_gate_node(state: FlexRouteState):
                 Return ONLY a valid JSON object matching the exact structure above.
                 If none, use empty arrays []. Do not output markdown or text."""
                 
-                json_local_llm = ChatOllama(model="mistral", temperature=0.0, format="json", num_predict=100)
+                json_local_llm = ChatOllama(model="mistral", temperature=0.0, format="json", num_predict=100, base_url=OLLAMA_URL)
                 raw_response = json_local_llm.invoke([HumanMessage(content=fallback_prompt)]).content.strip()
                 
                 if "```" in raw_response: 
@@ -303,7 +305,7 @@ def local_node(state: FlexRouteState):
     4. NEVER generate workout plans or JSON arrays."""
     
     compiled_messages = [SystemMessage(content=system_prompt)] + messages
-    chat_llm = ChatOllama(model="mistral", temperature=0.7)
+    chat_llm = ChatOllama(model="mistral", temperature=0.7, base_url=OLLAMA_URL)
     response = chat_llm.invoke(compiled_messages)
     return {"messages": [AIMessage(content=response.content)]}
 
@@ -474,7 +476,7 @@ def cloud_node(state: FlexRouteState):
         print("🧠 [Local Agent] Generating 7-day JSON matrix (this might take a minute)...")
         
         # 2. Start Mistral 
-        json_llm = ChatOllama(model="mistral", temperature=0.1, format="json", num_predict=2500)
+        json_llm = ChatOllama(model="mistral", temperature=0.1, format="json", num_predict=2500, base_url=OLLAMA_URL)
         response = json_llm.invoke(fallback_messages)
         
         # 3. Mistral finished! Check if the user hit "Abort" while they were waiting.

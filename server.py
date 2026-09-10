@@ -29,6 +29,7 @@ from langchain_ollama import ChatOllama
 APP_SESSION_TOKEN = str(uuid.uuid4())[:8]
 os.environ["ACTIVE_USER_ID"] = "guest_user"
 load_dotenv()
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
 
 API_KEYS_POOL = [
     os.getenv("GOOGLE_API_KEY"),
@@ -443,7 +444,12 @@ def process_chat_query(req: ChatRequest):
 
                 STRICT RULE: Respond with EXACTLY ONE WORD: ROUTINE, MEDICAL, or CHAT. If the message is a question about fitness concepts or pain, default to CHAT."""
                 
-                route_llm = ChatOllama(model="mistral", temperature=0.0, num_predict=5)
+                route_llm = ChatOllama(
+                    model="mistral",
+                    temperature=0.0,
+                    num_predict=5,
+                    base_url=OLLAMA_URL
+                )
                 intent = route_llm.invoke([HumanMessage(content=router_prompt)]).content.strip().upper()
                 print(f"🚦 [Semantic Router] Mistral classified intent as: {intent}")
             except Exception as e:
@@ -546,7 +552,7 @@ def process_chat_query(req: ChatRequest):
         
             try:
                 # Increased num_predict to 1000 so it can finish long tables
-                local_chat_llm = ChatOllama(model="mistral", temperature=0.7, num_predict=1000)
+                local_chat_llm = ChatOllama(model="mistral", temperature=0.7, num_predict=1000, base_url=OLLAMA_URL)
                 response = local_chat_llm.invoke(compiled_msgs)
                 langgraph_app.update_state(config, {"messages": [HumanMessage(content=user_input), AIMessage(content=response.content)]})
                 
@@ -627,7 +633,7 @@ def process_chat_query(req: ChatRequest):
                     
                     try:
                         athlete_context = f"Athlete Profile: {active_name} | Style: {active_type} | Injuries: {active_injuries}"
-                        local_survival_llm = ChatOllama(model="mistral", temperature=0.7)
+                        local_survival_llm = ChatOllama(model="mistral", temperature=0.7, base_url=OLLAMA_URL)
                         state_messages = state.values.get("messages", []) if state and state.values else []
                         
                         if is_structural:
@@ -655,7 +661,7 @@ def process_chat_query(req: ChatRequest):
                             ]"""
                             fallback_msg = [SystemMessage(content=system_prompt)] + list(state_messages) + [HumanMessage(content=user_input)]
                             
-                            json_llm = ChatOllama(model="mistral", temperature=0.2)
+                            json_llm = ChatOllama(model="mistral", temperature=0.2, base_url=OLLAMA_URL)
                             response = json_llm.invoke(fallback_msg)
                             raw_text = response.content.strip()
                             raw_text = raw_text.replace("```json", "").replace("```", "").strip()
@@ -733,4 +739,4 @@ def process_chat_query(req: ChatRequest):
 
 if __name__ == "__main__":
     print("\n🚀 [FLEXROUTE BRAIN] Booting Local Server Engine on Port 8000...\n")
-    uvicorn.run("server:app", host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=True)
