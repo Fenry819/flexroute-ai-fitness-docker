@@ -152,7 +152,7 @@ export default function App() {
         <div className="fixed inset-0 w-full h-full z-0 overflow-hidden pointer-events-none">
           {/* ADDED KEY HERE */}
           <video key="calib-video" autoPlay loop muted playsInline className="absolute top-0 left-0 w-full h-full object-cover opacity-50">
-            <source src="/calib-bg.mp4" type="video/mp4" />
+            <source src={`${import.meta.env.BASE_URL}calib-bg.mp4`} type="video/mp4" />
           </video>
           <div className="absolute inset-0 bg-gradient-to-b from-black/50 to-[#050505]"></div>
         </div>
@@ -224,7 +224,7 @@ export default function App() {
       <div className="fixed inset-0 w-full h-full z-0 overflow-hidden pointer-events-none">
         {/*  ADDED KEY HERE */}
         <video key="gate-video" autoPlay loop muted playsInline className="absolute top-0 left-0 w-full h-full object-cover opacity-60">
-          <source src="/gate-bg.mp4" type="video/mp4" />
+          <source src={`${import.meta.env.BASE_URL}gate-bg.mp4`} type="video/mp4" />
         </video>
         {/* Darkened overlay to make the white text pop, while keeping the video vivid */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/70 to-[#050505]"></div>
