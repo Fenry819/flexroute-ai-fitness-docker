@@ -15,7 +15,7 @@ from src.biomechanics import search_biomechanics
 
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
 
-DB_PATH = "checkpoints.sqlite"
+DB_PATH = os.getenv("DB_PATH", "checkpoints.sqlite")
 local_llm = ChatOllama(model="mistral", temperature=0.0,base_url=OLLAMA_URL)
 
 # --- Pydantic Schema Specifications ---

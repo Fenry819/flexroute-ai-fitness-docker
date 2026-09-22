@@ -15,7 +15,7 @@ from langchain_ollama import ChatOllama
 load_dotenv()  # Injects API keys from .env file into memory
 
 # Central Database Configuration path matching your graph configuration
-DB_PATH = "checkpoints.sqlite"
+DB_PATH = os.getenv("DB_PATH", "checkpoints.sqlite")
 
 # 1. DEFINE THE JSON SCHEMA
 class AthleteProfile(BaseModel):

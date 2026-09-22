@@ -29,7 +29,9 @@ from langchain_ollama import ChatOllama
 APP_SESSION_TOKEN = str(uuid.uuid4())[:8]
 os.environ["ACTIVE_USER_ID"] = "guest_user"
 load_dotenv()
+
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
+DB_PATH = os.getenv("DB_PATH", "checkpoints.sqlite")
 
 API_KEYS_POOL = [
     os.getenv("GOOGLE_API_KEY"),
@@ -55,7 +57,7 @@ class CloudKeyRotator:
 key_rotator = CloudKeyRotator(API_KEYS_POOL)
 
 def init_database():
-    conn = sqlite3.connect("checkpoints.sqlite")
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS athlete_profile (
@@ -139,7 +141,7 @@ def abort_process():
 @app.get("/api/profiles")
 def fetch_all_profiles():
     try:
-        conn = sqlite3.connect("checkpoints.sqlite")
+        conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         cursor.execute("SELECT id, name, username, password, avatar_color FROM athlete_profile")
         rows = cursor.fetchall()
@@ -155,7 +157,7 @@ def fetch_all_profiles():
 def register_new_profile(data: ProfileRegistration):
     try:
         os.environ["ACTIVE_USER_ID"] = data.user_id
-        conn = sqlite3.connect("checkpoints.sqlite")
+        conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         cursor.execute("""
             INSERT OR REPLACE INTO athlete_profile (id, name, athlete_type, experience_level, injury_flags, summary, username, password, avatar_color)
@@ -172,7 +174,7 @@ def register_new_profile(data: ProfileRegistration):
 @app.get("/api/profile/{user_id}/auth")
 def request_profile_login(user_id: str):
     try:
-        conn = sqlite3.connect("checkpoints.sqlite")
+        conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         cursor.execute("SELECT name, password FROM athlete_profile WHERE id=?", (user_id,))
         row = cursor.fetchone()
@@ -192,7 +194,7 @@ def confirm_authenticated_login(data: LoginRequest):
 def fetch_current_profile():
     active_id = os.environ.get("ACTIVE_USER_ID", "guest_user")
     try:
-        conn = sqlite3.connect("checkpoints.sqlite")
+        conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         cursor.execute("SELECT name, athlete_type, experience_level, injury_flags FROM athlete_profile WHERE id=?", (active_id,))
         row = cursor.fetchone()
@@ -216,7 +218,7 @@ def fetch_current_profile():
 def calibrate_profile(data: ProfileCalibration):
     active_id = os.environ.get("ACTIVE_USER_ID", "guest_user")
     try:
-        conn = sqlite3.connect("checkpoints.sqlite")
+        conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         cursor.execute("UPDATE athlete_profile SET experience_level=? WHERE id=?", (data.experience_level, active_id))
         conn.commit()
@@ -231,7 +233,7 @@ def calibrate_profile(data: ProfileCalibration):
 def edit_active_profile(data: ProfileUpdate):
     active_id = os.environ.get("ACTIVE_USER_ID", "guest_user")
     try:
-        conn = sqlite3.connect("checkpoints.sqlite")
+        conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         cursor.execute("""
             UPDATE athlete_profile 
@@ -249,7 +251,7 @@ def edit_active_profile(data: ProfileUpdate):
 @app.delete("/api/profile/{user_id}")
 def delete_athlete_profile(user_id: str):
     try:
-        conn = sqlite3.connect("checkpoints.sqlite")
+        conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         cursor.execute("DELETE FROM athlete_profile WHERE id=?", (user_id,))
         conn.commit()
@@ -266,7 +268,7 @@ def load_active_routine():
         return []
 
     try:
-        conn = sqlite3.connect("checkpoints.sqlite")
+        conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         cursor.execute("SELECT day_of_week, focus_area, workout_data FROM training_routines WHERE athlete_id=?", (active_id,))
         rows = cursor.fetchall()
@@ -295,7 +297,7 @@ def commit_proposed_routine(data: RoutineCommit):
 
     try:
         days_list = json.loads(data.proposed_json_str)       
-        conn = sqlite3.connect("checkpoints.sqlite", timeout=15.0)
+        conn = sqlite3.connect(DB_PATH, timeout=15.0)
         cursor = conn.cursor()
         cursor.execute("DELETE FROM training_routines WHERE athlete_id=?", (active_id,))
         
@@ -326,7 +328,7 @@ def clear_active_routine():
     if not active_id or active_id == "guest_user":
         return {"error": "No active user"}
     try:
-        conn = sqlite3.connect("checkpoints.sqlite", timeout=15.0)
+        conn = sqlite3.connect(DB_PATH, timeout=15.0)
         cursor = conn.cursor()
         cursor.execute("DELETE FROM training_routines WHERE athlete_id=?", (active_id,))
         conn.commit()
@@ -347,7 +349,7 @@ def upload_workout_file(file: UploadFile = File(...)):
     compact_logs_to_profile(file_path)
     
     try:
-        conn = sqlite3.connect("checkpoints.sqlite")
+        conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         active_id = os.environ.get("ACTIVE_USER_ID", "guest_user")
         cursor.execute("SELECT name, athlete_type, experience_level, injury_flags, summary FROM athlete_profile WHERE id=?", (active_id,))
@@ -384,7 +386,7 @@ def process_chat_query(req: ChatRequest):
         active_id = os.environ.get("ACTIVE_USER_ID", "guest_user")
 
         try:
-            conn = sqlite3.connect("checkpoints.sqlite")
+            conn = sqlite3.connect(DB_PATH)
             cursor = conn.cursor()
             cursor.execute("SELECT name, athlete_type, injury_flags FROM athlete_profile WHERE id=?", (active_id,))
             db_user = cursor.fetchone()
@@ -612,7 +614,7 @@ def process_chat_query(req: ChatRequest):
                         output_payload["require_approval"] = True
                 
                 try:
-                    conn = sqlite3.connect("checkpoints.sqlite", timeout=10.0)
+                    conn = sqlite3.connect(DB_PATH, timeout=10.0)
                     cursor = conn.cursor()
                     cursor.execute("SELECT injury_flags FROM athlete_profile WHERE id=?", (active_id,))
                     updated_flags_row = cursor.fetchone()
@@ -709,7 +711,7 @@ def process_chat_query(req: ChatRequest):
                             }
                             
                         try:
-                            conn = sqlite3.connect("checkpoints.sqlite", timeout=10.0)
+                            conn = sqlite3.connect(DB_PATH, timeout=10.0)
                             cursor = conn.cursor()
                             cursor.execute("SELECT injury_flags FROM athlete_profile WHERE id=?", (active_id,))
                             updated_flags_row = cursor.fetchone()
