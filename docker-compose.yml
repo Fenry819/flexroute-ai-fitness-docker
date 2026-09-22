@@ -16,6 +16,14 @@ services:
     volumes:
       - ollama_data:/root/.ollama
 
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["0"]
+              capabilities: [gpu]
+
   backend:
     build: .
     container_name: flexroute-api
