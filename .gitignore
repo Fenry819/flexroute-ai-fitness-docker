@@ -32,3 +32,4 @@ checkpoints.sqlite
 abort_signal.tmp
 temp_*
 desktop_app.py
+installer/*.exe
