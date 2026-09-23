@@ -2,47 +2,56 @@
 
 FlexRoute is a fully containerized AI fitness application built as a desktop experience with Electron + React and a Python/FastAPI backend.
 
-It uses a hybrid AI architecture that routes lightweight fitness conversations to a local Mistral model through Ollama, while more complex routine-generation tasks can use Google Gemini. FlexRoute also combines injury-aware guardrails, persistent athlete state, and a Qdrant-powered RAG biomechanics layer.
+It uses a hybrid AI architecture: lightweight fitness chat and Q&A can run locally through Mistral + Ollama, while more complex routine-generation tasks can use Google Gemini. FlexRoute also includes injury-aware guardrails, persistent athlete state, and a Qdrant-powered RAG biomechanics layer.
+
+---
 
 ## ✨ Core Features
 
-- 🧠 **Semantic Routing / Hybrid AI**
-  - Uses LangGraph to classify user intent.
-  - Casual fitness chat and Q&A can be handled locally by Mistral through Ollama.
-  - More complex routine-generation logic can be routed to Gemini 2.5 Flash.
+- 🧠 **Hybrid AI / Semantic Routing**
+  - LangGraph classifies user intent.
+  - Casual fitness chat and Q&A can run locally through Mistral.
+  - More complex routine-generation tasks can use Gemini 2.5 Flash.
+
 - 🛡️ **Injury-Aware Guardrails**
   - Users can report injuries in natural language.
-  - Injury information is stored locally and can influence future exercise selection.
+  - Injury information is stored persistently and can influence exercise selection.
+
 - 🏗️ **Dynamic Routine Architecture**
-  - Programming logic can adapt to training style, goals, and available context.
+  - Training plans can adapt to athlete profile, training style, goals, and injuries.
+
 - 📚 **RAG Biomechanics Engine**
-  - Uses Qdrant for vector search.
-  - Uses `nomic-embed-text` for embeddings.
-  - Relevant exercise cues and biomechanics knowledge can be injected into AI responses.
-- 💾 **Persistent Local State**
-  - SQLite stores application state and athlete/profile information.
-  - Qdrant data and Ollama models are persisted using Docker volumes.
-- 🐳 **Dockerized Backend Stack**
-  - FastAPI backend
-  - Ollama
-  - Mistral
-  - nomic-embed-text
-  - Qdrant
-- 🖥️ **Packaged Desktop App**
-  - React + Vite frontend
-  - Electron desktop shell
-  - Windows installer generated using electron-builder
+  - Qdrant stores vectorized knowledge.
+  - `nomic-embed-text` generates embeddings.
+  - Relevant biomechanics/form knowledge can be retrieved and added to AI context.
 
-## 🛠️ Tech Stack
+- 💾 **Persistent Data**
+  - SQLite application/profile data is stored in a Docker named volume.
+  - Qdrant data is stored in a Docker named volume.
+  - Ollama models are stored in a Docker named volume.
 
-### Frontend
+- 🎮 **Automatic GPU / CPU Mode**
+  - `setup.bat` and `start_flexroute.bat` detect NVIDIA GPUs automatically.
+  - NVIDIA systems use the GPU Compose override.
+  - Other systems fall back to CPU mode.
+
+- 🖥️ **Packaged Windows Desktop App**
+  - Electron + React + Vite.
+  - Users can choose the installation directory.
+  - The launcher opens the installed app through its Windows shortcut instead of relying on a fixed install path.
+
+---
+
+# 🛠️ Tech Stack
+
+## Frontend
 - React
 - Vite
 - Electron
 - Tailwind CSS
 - Framer Motion
 
-### Backend
+## Backend
 - Python
 - FastAPI
 - LangGraph
@@ -50,18 +59,20 @@ It uses a hybrid AI architecture that routes lightweight fitness conversations t
 - SQLite
 - Google Gemini 2.5 Flash
 
-### Local AI / RAG
+## Local AI / RAG
 - Ollama
 - Mistral
 - nomic-embed-text
 - Qdrant
 
-### Deployment
+## Deployment
 - Docker
 - Docker Compose
-- electron-builder
+- electron-builder / NSIS
 
-## 🏗️ Architecture
+---
+
+# 🏗️ Architecture
 
 ```text
 FlexRoute Desktop App
@@ -87,7 +98,7 @@ Google Gemini
 (for configured cloud-routing tasks)
 ```
 
-Docker Compose runs the backend services:
+Docker Compose runs:
 
 ```text
 flexroute-api
@@ -95,42 +106,62 @@ flexroute-qdrant
 flexroute-ollama
 ```
 
-## ⚙️ Requirements
+Persistent Docker volumes:
 
-For the Docker version, normal users do **not** need to manually install Python, Ollama, Qdrant, or backend dependencies.
+```text
+sqlite_data
+qdrant_data
+ollama_data
+```
+
+---
+
+# ⚙️ Requirements
+
+For normal use, you do **not** need to manually install Python, Ollama, Qdrant, or Node.js.
 
 You need:
 
 1. **Docker Desktop**
-2. The FlexRoute project repository
-3. A valid `.env` file containing the required Gemini API keys
-4. The packaged FlexRoute Windows installer
+2. The FlexRoute repository
+3. A valid `.env` file containing your Gemini API keys
+4. The FlexRoute Windows installer from the repository's **GitHub Releases** page
 
-> Docker images and local AI models require several GB of disk space. Make sure the drive used by Docker Desktop has enough free storage before the first setup.
+> Docker images and local AI models require several GB of disk space. If your C: drive is small, move Docker Desktop's disk image location to another drive before the first setup.
 
-## 🚀 Docker Version — First-Time Setup
+---
 
-### 1. Clone the Docker repository
+# 🚀 First-Time Setup
+
+## 1. Clone the repository
 
 ```powershell
 git clone https://github.com/Fenry819/flexroute-ai-fitness-docker.git
 cd flexroute-ai-fitness-docker
 ```
 
-### 2. Configure environment variables
+## 2. Create the `.env` file
 
-Create a file named `.env` in the project root:
+Create a file named:
+
+```text
+.env
+```
+
+in the project root.
+
+Example:
 
 ```env
 GOOGLE_API_KEY=your_primary_gemini_api_key_here
 GOOGLE_API_KEY_BACKUP=your_backup_gemini_api_key_here
 ```
 
-Do not commit `.env` to GitHub.
+Never commit `.env` to GitHub.
 
-### 3. Make sure Docker Desktop is running
+## 3. Install and start Docker Desktop
 
-Verify:
+Verify Docker:
 
 ```powershell
 docker info
@@ -138,7 +169,17 @@ docker info
 
 If Docker returns both Client and Server information, it is ready.
 
-### 4. Run the automated setup
+## 4. Download the FlexRoute Windows installer
+
+Open the repository's **Releases** section on GitHub and download the latest installer:
+
+```text
+FlexRoute Setup <version>.exe
+```
+
+The installer is distributed through GitHub Releases instead of being committed directly to the repository because Electron installers are large generated build artifacts.
+
+## 5. Run the automated backend setup
 
 Double-click:
 
@@ -154,33 +195,55 @@ or run:
 
 The setup script will:
 
-1. Build/start the Docker services
-2. Pull the Ollama Docker image if needed
-3. Pull the `mistral` model
-4. Pull the `nomic-embed-text` embedding model
-5. Prepare the Qdrant knowledge collection
+1. Check that Docker is available.
+2. Detect whether an NVIDIA GPU is available.
+3. Start FlexRoute in GPU mode when NVIDIA is available, otherwise CPU mode.
+4. Build/start the Docker services.
+5. Pull the Mistral model.
+6. Pull `nomic-embed-text`.
+7. Prepare the Qdrant knowledge collection.
 
-The first setup can take some time because several large Docker images and AI models need to be downloaded.
+The first run can take a while because Docker images and AI models need to be downloaded.
 
-### 5. Install the FlexRoute desktop app
+### NVIDIA systems
 
-Run:
-
-```text
-FlexRoute Setup 0.0.0.exe
-```
-
-The app is normally installed under:
+When an NVIDIA GPU is detected, FlexRoute combines:
 
 ```text
-%LOCALAPPDATA%\Programs\FlexRoute\
+docker-compose.yml
++
+docker-compose.gpu.yml
 ```
 
-## 🎮 Normal Usage
+so Ollama can use the NVIDIA GPU.
 
-After the first-time setup, you do not need to manually start Python, Ollama, FastAPI, or Qdrant.
+### CPU-only / non-NVIDIA systems
 
-Simply double-click:
+The normal:
+
+```text
+docker-compose.yml
+```
+
+is used without the GPU override.
+
+## 6. Install FlexRoute
+
+Run the downloaded installer:
+
+```text
+FlexRoute Setup <version>.exe
+```
+
+The installer allows you to choose where FlexRoute is installed.
+
+It creates Windows shortcuts that `start_flexroute.bat` can use, so the launcher does not depend on a hardcoded installation directory.
+
+---
+
+# 🎮 Normal Usage
+
+After the first-time setup, run:
 
 ```text
 start_flexroute.bat
@@ -189,22 +252,149 @@ start_flexroute.bat
 The launcher will:
 
 ```text
-Start Docker services
-        ↓
-FastAPI + Qdrant + Ollama
-        ↓
-Launch FlexRoute.exe
+Check Docker
+      ↓
+Detect NVIDIA GPU
+      ↓
+Start Docker services in GPU or CPU mode
+      ↓
+Wait for the backend
+      ↓
+Find the FlexRoute Windows shortcut
+      ↓
+Launch FlexRoute
 ```
 
-## 🐳 Useful Docker Commands
+You do **not** need to manually run:
 
-Check running services:
+```text
+ollama serve
+python server.py
+npm run electron:dev
+```
+
+for normal use.
+
+---
+
+# 🐳 Docker Files
+
+## `docker-compose.yml`
+
+Defines the normal FlexRoute stack:
+
+- FastAPI backend
+- Qdrant
+- Ollama
+- persistent SQLite/Qdrant/Ollama volumes
+
+## `docker-compose.gpu.yml`
+
+Adds NVIDIA GPU access to the Ollama service.
+
+It is used automatically by the batch scripts when `nvidia-smi` detects an NVIDIA GPU.
+
+---
+
+# 💾 Persistent Data
+
+## SQLite
+
+Application/profile data is stored in:
+
+```text
+sqlite_data
+```
+
+The backend uses:
+
+```text
+/app/data/checkpoints.sqlite
+```
+
+inside the container.
+
+This means a fresh clone does **not** need a pre-existing `checkpoints.sqlite` file on Windows.
+
+## Qdrant
+
+Stored in:
+
+```text
+qdrant_data
+```
+
+## Ollama models
+
+Stored in:
+
+```text
+ollama_data
+```
+
+Named volumes survive normal container recreation.
+
+Avoid:
+
+```powershell
+docker compose down -v
+```
+
+unless you intentionally want to delete persistent data and downloaded models.
+
+---
+
+# 🎮 NVIDIA GPU Verification
+
+To check whether Mistral is currently loaded on the GPU:
+
+```powershell
+docker compose exec ollama ollama ps
+```
+
+When GPU acceleration is active, the `PROCESSOR` column may show:
+
+```text
+100% GPU
+```
+
+To verify the NVIDIA driver on Windows:
+
+```powershell
+nvidia-smi
+```
+
+> Windows Task Manager GPU numbering and NVIDIA device numbering are not necessarily the same. Windows may call an Intel iGPU `GPU 0` and the NVIDIA GPU `GPU 1`, while NVIDIA/Docker sees the NVIDIA card as device `0`.
+
+---
+
+# 📚 Qdrant Knowledge Base
+
+To rebuild the RAG collection manually:
+
+```powershell
+docker compose exec backend python src/document_loader.py
+```
+
+This rebuilds the:
+
+```text
+exercise_cues
+```
+
+collection from the project's knowledge files.
+
+---
+
+# 🐳 Useful Docker Commands
+
+Check services:
 
 ```powershell
 docker compose ps
 ```
 
-Expected services:
+Expected containers:
 
 ```text
 flexroute-api
@@ -212,10 +402,16 @@ flexroute-qdrant
 flexroute-ollama
 ```
 
-Start services manually:
+Start CPU/default mode manually:
 
 ```powershell
 docker compose up -d
+```
+
+Start NVIDIA GPU mode manually:
+
+```powershell
+docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
 ```
 
 Stop services:
@@ -224,71 +420,30 @@ Stop services:
 docker compose down
 ```
 
-Avoid `docker compose down -v` unless you intentionally want to delete persistent Docker volumes.
-
 View backend logs:
 
 ```powershell
 docker compose logs -f backend
 ```
 
-## 🤖 Ollama Models
-
-Check installed models:
+Check installed Ollama models:
 
 ```powershell
 docker compose exec ollama ollama list
 ```
 
-Expected:
+Expected models:
 
 ```text
 mistral:latest
 nomic-embed-text:latest
 ```
 
-If required, pull them manually:
+---
 
-```powershell
-docker compose exec ollama ollama pull mistral
-docker compose exec ollama ollama pull nomic-embed-text
-```
+# 🖥️ Development Setup
 
-You do **not** need to run Ollama separately on Windows.
-
-## 📚 Rebuild the Qdrant Knowledge Base
-
-```powershell
-docker compose exec backend python src/document_loader.py
-```
-
-This rebuilds the `exercise_cues` collection from the project's knowledge files.
-
-## 💾 Persistent Data
-
-Qdrant data is stored in the Docker volume:
-
-```text
-qdrant_data
-```
-
-Ollama models are stored in:
-
-```text
-ollama_data
-```
-
-FlexRoute uses:
-
-```text
-checkpoints.sqlite
-```
-
-for local state/profile persistence. The database is intentionally excluded from Git so personal user data is not committed.
-
-## 🖥️ Development Setup
-
-For frontend development:
+Node.js/npm are only required if you are developing or rebuilding the Electron frontend.
 
 ```powershell
 cd flex-web
@@ -296,115 +451,178 @@ npm install
 npm run electron:dev
 ```
 
-To build a new Windows installer:
+To create a new Windows installer:
 
 ```powershell
 npm run electron:build
 ```
 
-The generated installer appears in:
+Generated output appears under:
 
 ```text
 flex-web\dist\
 ```
 
-## 🔐 Security Notes
+`flex-web/dist/` remains ignored by Git because it contains generated build artifacts.
+
+For distribution, upload the final installer to **GitHub Releases**.
+
+---
+
+# 🔐 Security / Git Notes
 
 Never commit:
 
 ```text
 .env
-checkpoints.sqlite
 *.db
 *.sqlite
 *.sqlite3
 ```
 
-The repository should contain an `.env.example` instead of real API keys.
+Also keep generated Electron output ignored:
 
-## 🧹 Recommended `.gitignore`
+```gitignore
+flex-web/dist/
+```
+
+Recommended `.gitignore` entries:
 
 ```gitignore
 .env
+
 venv/
 __pycache__/
 *.pyc
+
 node_modules/
 flex-web/node_modules/
+
 flex-web/dist/
-checkpoints.sqlite
+
 *.db
 *.sqlite
 *.sqlite3
+
 abort_signal.tmp
 temp_*
+
 desktop_app.py
+
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
 ```
 
-## 🧪 Troubleshooting
+---
 
-### Docker Desktop is not running
+# 🧪 Troubleshooting
 
-Start Docker Desktop and wait until Docker is ready, then run:
+## Docker Desktop is not running
+
+Start Docker Desktop and verify:
 
 ```powershell
-docker compose up -d
+docker info
 ```
 
-### AI responses are not working
+## Backend is not running
 
 ```powershell
 docker compose ps
-docker compose logs -f backend
-docker compose exec ollama ollama list
+docker compose logs backend
 ```
 
-### Gemini API calls fail
+## AI does not respond
 
-Make sure `.env` exists in the project root and contains valid API keys, then run:
+```powershell
+docker compose ps
+docker compose exec ollama ollama list
+docker compose logs -f backend
+```
+
+## Mistral is using CPU instead of NVIDIA GPU
+
+Verify:
+
+```powershell
+nvidia-smi
+```
+
+Then start GPU mode manually:
+
+```powershell
+docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
+```
+
+Run a Mistral request and check:
+
+```powershell
+docker compose exec ollama ollama ps
+```
+
+Look for:
+
+```text
+100% GPU
+```
+
+## Gemini API calls fail
+
+Verify that `.env` exists in the project root and contains valid keys.
+
+Then recreate the backend:
 
 ```powershell
 docker compose up -d --force-recreate backend
 ```
 
-### RAG / biomechanics responses are missing
+## RAG / biomechanics responses are missing
 
 ```powershell
 docker compose exec backend python src/document_loader.py
 ```
 
-### Docker consumes too much C: drive space
+## Docker consumes too much C: drive space
 
-Docker Desktop can store its Linux disk image on the system drive by default. If C: is small, move Docker's disk image location to another drive before downloading large models.
+Docker Desktop may store its Linux virtual disk on C: by default.
 
-## 📦 New-Laptop Quick Start
+Docker images, Mistral, Ollama data, Qdrant data, and build cache can consume many GB.
+
+If C: has limited space, move Docker Desktop's disk image location to another drive before downloading the models.
+
+---
+
+# 📦 New-Laptop Quick Start
 
 ```text
 1. Install Docker Desktop
-2. Clone the repository
-3. Create the .env file
-4. Run setup.bat
-5. Install FlexRoute Setup 0.0.0.exe
-6. Run start_flexroute.bat
-7. Use FlexRoute
+2. Clone the FlexRoute repository
+3. Add the .env file
+4. Download the latest FlexRoute installer from GitHub Releases
+5. Run setup.bat
+6. Install FlexRoute wherever you want
+7. Run start_flexroute.bat
+8. Use FlexRoute
 ```
 
-After initial setup, normal startup is simply:
+After first-time setup, normal use is simply:
 
 ```text
 start_flexroute.bat
 ```
 
-## 🤝 Disclaimer
+---
 
-FlexRoute is an AI-powered software project created to demonstrate hybrid local/cloud LLM routing, LangGraph orchestration, RAG, Docker deployment, and full-stack desktop integration.
+# 🤝 Disclaimer
+
+FlexRoute is an AI-powered software project created to demonstrate hybrid local/cloud LLM routing, LangGraph orchestration, RAG, Docker deployment, GPU acceleration, and full-stack desktop integration.
 
 AI-generated fitness and biomechanics information should not be treated as a substitute for professional medical diagnosis, treatment, rehabilitation, or clinical advice.
 
-## 📄 License
+---
+
+# 📄 License
 
 Add the license used for this repository here.
